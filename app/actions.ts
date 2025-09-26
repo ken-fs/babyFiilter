@@ -9,7 +9,8 @@ export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const headerOrigin = (await headers()).get("origin");
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || headerOrigin || "";
 
   if (!email || !password) {
     return encodedRedirect(
@@ -19,20 +20,30 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      // Prefer explicit site URL; fallback to header origin if available
+      emailRedirectTo: origin ? `${origin}/auth/callback` : undefined,
     },
   });
 
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect("success", "/dashboard", "Thanks for signing up!");
   }
+
+  // If email confirmation is required, Supabase returns no session here.
+  if (!data?.session) {
+    return encodedRedirect(
+      "success",
+      "/sign-in",
+      "Verification email sent. Please confirm to sign in."
+    );
+  }
+
+  return encodedRedirect("success", "/dashboard", "Thanks for signing up!");
 };
 
 export const signInAction = async (formData: FormData) => {
