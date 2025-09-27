@@ -11,14 +11,14 @@ const footerLinks = [
     links: [
       { label: "Features", href: "/#features" },
       { label: "How It Works", href: "/#how-it-works" },
-      { label: "Pricing", href: "/#pricing" },
+      { label: "Pricing", href: "/pricing" },
     ],
   },
   {
     title: "Explore",
     links: [
       { label: "Samples", href: "/#gallery" },
-      { label: "Safety & Provenance", href: "/#safety" },
+      { label: "Safety & Provenance", href: "/docs#safety" },
     ],
   },
   {

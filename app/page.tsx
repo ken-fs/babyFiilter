@@ -1,5 +1,4 @@
 import UploadPanel from "@/components/home/upload-panel";
-import ChineseNamePricing from "@/components/product/pricing/chinese-name-pricing";
 
 export default function Home() {
   const faqJsonLd = {
@@ -38,35 +37,43 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative py-20 lg:py-28 bg-gradient-to-b from-background to-background/60">
-        <div className="container px-4 md:px-6 relative">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-primary/10 text-primary mb-4">
-              AI‑Powered, SynthID Watermarked
-            </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            BabyFilter — Youth Filter + Mech Stylizer (AI‑Powered, SynthID Watermarked)
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-            Transform faces, pets, and objects into identity‑faithful mech‑stylized portraits with youth‑like proportions. BabyFilter is a creator‑grade filter that locks style server‑side, preserves structure, and renders realistic hard‑surface panels, bolts, joints, LEDs, and reflections. Not a toy “beauty app” — it’s a robust visual effect pipeline for content teams and enthusiasts.
-          </p>
-          <div className="mt-6">
-            <a
-              href="#pricing"
-              className="inline-flex items-center justify-center h-12 px-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md shadow-lg"
-            >
-              Pricing
-            </a>
-          </div>
+      {/* Editor/Hero */}
+      <section id="editor" className="relative py-16 lg:py-24 overflow-hidden">
+        {/* orbital background */}
+        <div className="pointer-events-none absolute inset-0 opacity-60">
+          <div className="absolute -top-32 -left-20 h-80 w-80 rounded-full bg-gradient-to-br from-purple-600/30 to-fuchsia-500/20 blur-3xl animate-pulse" />
+          <div className="absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-gradient-to-tr from-primary/30 to-indigo-500/20 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
         </div>
+        <div className="container px-4 md:px-6 relative">
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-primary/10 text-primary mb-4">
+                AI‑Powered, SynthID Watermarked
+              </div>
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+                BabyFilter — Youth Filter + Mech Stylizer (AI‑Powered, SynthID Watermarked)
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+                Transform faces, pets, and objects into identity‑faithful mech‑stylized portraits with youth‑like proportions. BabyFilter is a creator‑grade filter that locks style server‑side, preserves structure, and renders realistic hard‑surface panels, bolts, joints, LEDs, and reflections. Not a toy “beauty app” — it’s a robust visual effect pipeline for content teams and enthusiasts.
+              </p>
+              <div className="mt-6">
+                <a
+                  href="/pricing"
+                  className="inline-flex items-center justify-center h-12 px-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md shadow-lg"
+                >
+                  Pricing
+                </a>
+              </div>
+            </div>
 
-          <div className="mt-10">
-            <UploadPanel />
-          </div>
+            <div className="mt-4 lg:mt-0">
+              <UploadPanel />
+            </div>
 
           <p className="mt-8 max-w-4xl text-sm md:text-base text-muted-foreground">
             Apply our youth stylization to selfies and product shots: bold identity preservation, realistic mech‑panel finish, and safe defaults. Ideal if you want to apply baby filter to photo online, upload photo get baby filter result, or explore AI age regression filter online responsibly.
           </p>
+          </div>
         </div>
       </section>
 
@@ -223,13 +230,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 md:py-16 bg-muted/10" id="docs">
-        <div className="container px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-semibold">Docs</h2>
-          <p className="mt-4"><a className="text-primary" href="#">Read Docs</a></p>
-        </div>
-      </section>
-
       <section className="py-12 md:py-16 bg-muted/10" id="provenance">
         <div className="container px-4 md:px-6">
           <h2 className="text-2xl md:text-3xl font-semibold">Provenance</h2>
@@ -270,16 +270,11 @@ export default function Home() {
             </p>
             <ul className="mt-6 space-y-2">
               <li><a className="text-primary" href="#hero-upload">Try BabyFilter now</a></li>
-              <li><a className="text-primary" href="#docs">View Docs</a></li>
+              <li><a className="text-primary" href="/docs">View Docs</a></li>
               <li><a className="text-primary" href="#safety">Read Safety & Provenance</a></li>
             </ul>
           </div>
         </div>
-      </section>
-
-      {/* Pricing / Purchase Plans */}
-      <section id="pricing">
-        <ChineseNamePricing />
       </section>
 
       <section className="py-12 md:py-16 bg-muted/10" id="product-info">

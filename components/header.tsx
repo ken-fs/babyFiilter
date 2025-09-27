@@ -21,14 +21,14 @@ export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
 
-  // Main navigation items for BabyFilter homepage anchors
+  // Main navigation modeled after Nano Banana-style layout
   const mainNavItems: NavItem[] = [
-    { label: "Home", href: "/" },
+    { label: "Editor", href: "/#editor" },
     { label: "Features", href: "/#features" },
-    { label: "How It Works", href: "/#how-it-works" },
-    { label: "Use Cases", href: "/#use-cases" },
+    { label: "Samples", href: "/#gallery" },
+    { label: "Pricing", href: "/pricing" },
     { label: "FAQ", href: "/#faq" },
-    { label: "Pricing", href: "/#pricing" },
+    { label: "Docs", href: "/docs" },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -39,18 +39,18 @@ export default function Header({ user }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4 gap-3">
+      <div className="container max-w-screen-2xl 2xl:max-w-[1680px] flex h-16 items-center px-4 gap-3">
         <div className="flex items-center min-w-0">
           <Logo />
         </div>
 
         {/* Centered Navigation - show on lg+ only, avoid overlap */}
-        <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 mx-2 overflow-x-auto whitespace-nowrap">
+        <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 mx-2 whitespace-nowrap">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-base font-semibold text-muted-foreground transition-colors hover:text-primary"
+              className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary px-2 py-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               {item.label}
             </Link>
@@ -88,7 +88,7 @@ export default function Header({ user }: HeaderProps) {
                 <Link href="/#gallery">View Samples</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/#hero-upload">Try Now</Link>
+                <Link href="/#editor">Try Now</Link>
               </Button>
             </div>
           )}

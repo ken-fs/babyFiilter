@@ -153,7 +153,7 @@ export default function UploadPanel() {
           <a href="#gallery">View Samples</a>
         </Button>
         <Button asChild variant="ghost" className="px-0 h-auto text-primary">
-          <a href="#docs">Read Docs</a>
+          <a href="/docs">Read Docs</a>
         </Button>
         <Button asChild variant="ghost" className="px-0 h-auto text-primary">
           <a href="#provenance">Copy Attribution</a>
@@ -162,4 +162,3 @@ export default function UploadPanel() {
     </div>
   );
 }
-
