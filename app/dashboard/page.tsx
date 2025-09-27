@@ -17,31 +17,31 @@ export default async function DashboardPage() {
     return redirect("/sign-in");
   }
 
-  // Get customer data including credits and subscription
-  const { data: customerData } = await supabase
-    .from("customers")
+  // Prefer subscription records directly (handles multiple customer rows gracefully)
+  const { data: activeOrTrialSub } = await supabase
+    .from("subscriptions")
     .select(
-      `
-      *,
-      subscriptions (
-        status,
-        current_period_start,
-        current_period_end,
-        canceled_at,
-        trial_end,
-        creem_product_id
-      ),
-      credits_history (
-        amount,
-        type,
-        created_at
-      )
-    `
+      `status, current_period_start, current_period_end, canceled_at, trial_end, creem_product_id, customers!inner(user_id)`
     )
-    .eq("user_id", user.id)
-    .single();
+    .eq("customers.user_id", user.id)
+    .in("status", ["active", "trialing"]) // prefer active/trialing
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const rawSub = customerData?.subscriptions?.[0] as
+  const { data: fallbackSub } = !activeOrTrialSub
+    ? await supabase
+        .from("subscriptions")
+        .select(
+          `status, current_period_start, current_period_end, canceled_at, trial_end, creem_product_id, customers!inner(user_id)`
+        )
+        .eq("customers.user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null } as any;
+
+  const rawSub = (activeOrTrialSub || fallbackSub) as
     | {
         status: string;
         current_period_start?: string;
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
         trial_end?: string | null;
         creem_product_id?: string;
       }
-    | undefined;
+    | null;
 
   const subscription = rawSub
     ? {
@@ -64,6 +64,25 @@ export default async function DashboardPage() {
             : undefined,
       }
     : null;
+
+  // Get customer data for credits and history (pick most recently updated row)
+  const { data: customerData } = await supabase
+    .from("customers")
+    .select(
+      `
+      *,
+      credits_history (
+        amount,
+        type,
+        created_at
+      )
+    `
+    )
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const credits = customerData?.credits || 0;
   const recentCreditsHistory = customerData?.credits_history?.slice(0, 2) || [];
 

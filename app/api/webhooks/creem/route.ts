@@ -7,6 +7,7 @@ import {
   createOrUpdateSubscription,
   addCreditsToCustomer,
 } from "@/utils/supabase/subscriptions";
+import type { CreemCustomer } from "@/types/creem";
 import { createServiceRoleClient } from "@/utils/supabase/service-role";
 
 const CREEM_WEBHOOK_SECRET = process.env.CREEM_WEBHOOK_SECRET!;
@@ -110,8 +111,12 @@ async function handleSubscriptionActive(event: CreemWebhookEvent) {
 
   try {
     // Create or update customer
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
 
@@ -129,8 +134,12 @@ async function handleSubscriptionPaid(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status and period
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     const subscriptionId = await createOrUpdateSubscription(subscription, customerId);
@@ -216,8 +225,12 @@ async function handleSubscriptionCanceled(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);
@@ -233,8 +246,12 @@ async function handleSubscriptionExpired(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);
@@ -250,8 +267,12 @@ async function handleSubscriptionTrialing(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);
