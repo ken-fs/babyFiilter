@@ -28,6 +28,7 @@ export default function Header({ user }: HeaderProps) {
     { label: "How It Works", href: "/#how-it-works" },
     { label: "Use Cases", href: "/#use-cases" },
     { label: "FAQ", href: "/#faq" },
+    { label: "Pricing", href: "/#pricing" },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -38,25 +39,25 @@ export default function Header({ user }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center">
+      <div className="container flex h-16 items-center px-4 gap-3">
+        <div className="flex items-center min-w-0">
           <Logo />
         </div>
-        
-        {/* Centered Navigation */}
-        <nav className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+
+        {/* Centered Navigation - show on lg+ only, avoid overlap */}
+        <nav className="hidden lg:flex flex-1 items-center justify-center gap-6 mx-2 overflow-x-auto whitespace-nowrap">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-lg font-semibold text-muted-foreground transition-colors hover:text-primary"
+              className="text-base font-semibold text-muted-foreground transition-colors hover:text-primary"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeSwitcher />
           {user ? (
             <div className="hidden md:flex items-center gap-2">
@@ -83,7 +84,7 @@ export default function Header({ user }: HeaderProps) {
             </div>
           ) : (
             <div className="hidden md:flex gap-2">
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className="hidden xl:inline-flex">
                 <Link href="/#gallery">View Samples</Link>
               </Button>
               <Button asChild size="sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
@@ -33,7 +33,7 @@ interface NameData {
   style: string;
 }
 
-export default function NameDetailPage() {
+function NameDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -438,5 +438,19 @@ export default function NameDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NameDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      }
+    >
+      <NameDetailContent />
+    </Suspense>
   );
 }

@@ -10,7 +10,11 @@ export function useUser() {
 
   useEffect(() => {
     // Hydrate from server (cookie-based) so client matches real session
-    getUserFromServer();
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH_FETCH !== "1") {
+      getUserFromServer();
+    } else {
+      setLoading(false);
+    }
 
     // Listen for changes on auth state (login, sign out, etc.)
     const {

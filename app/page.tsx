@@ -1,4 +1,5 @@
 import UploadPanel from "@/components/home/upload-panel";
+import ChineseNamePricing from "@/components/product/pricing/chinese-name-pricing";
 
 export default function Home() {
   const faqJsonLd = {
@@ -43,13 +44,21 @@ export default function Home() {
             <div className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-primary/10 text-primary mb-4">
               AI‑Powered, SynthID Watermarked
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              BabyFilter — Youth Filter + Mech Stylizer (AI‑Powered, SynthID Watermarked)
-            </h1>
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-              Transform faces, pets, and objects into identity‑faithful mech‑stylized portraits with youth‑like proportions. BabyFilter is a creator‑grade filter that locks style server‑side, preserves structure, and renders realistic hard‑surface panels, bolts, joints, LEDs, and reflections. Not a toy “beauty app” — it’s a robust visual effect pipeline for content teams and enthusiasts.
-            </p>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+            BabyFilter — Youth Filter + Mech Stylizer (AI‑Powered, SynthID Watermarked)
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-muted-foreground">
+            Transform faces, pets, and objects into identity‑faithful mech‑stylized portraits with youth‑like proportions. BabyFilter is a creator‑grade filter that locks style server‑side, preserves structure, and renders realistic hard‑surface panels, bolts, joints, LEDs, and reflections. Not a toy “beauty app” — it’s a robust visual effect pipeline for content teams and enthusiasts.
+          </p>
+          <div className="mt-6">
+            <a
+              href="#pricing"
+              className="inline-flex items-center justify-center h-12 px-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md shadow-lg"
+            >
+              Pricing
+            </a>
           </div>
+        </div>
 
           <div className="mt-10">
             <UploadPanel />
@@ -266,6 +275,11 @@ export default function Home() {
             </ul>
           </div>
         </div>
+      </section>
+
+      {/* Pricing / Purchase Plans */}
+      <section id="pricing">
+        <ChineseNamePricing />
       </section>
 
       <section className="py-12 md:py-16 bg-muted/10" id="product-info">

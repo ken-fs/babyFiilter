@@ -93,15 +93,11 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
 
   const handlePurchase = async (tierId: string) => {
     if (tierId === "free-trial") {
-      // Call the scroll to form function if provided, otherwise scroll to form section
-      if (onScrollToForm) {
-        onScrollToForm();
-      } else {
-        const formSection = document.querySelector('[data-name-generator-form]');
-        if (formSection) {
-          formSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
+      // Prefer hero upload panel if present, otherwise fallback to legacy selector
+      const hero = document.querySelector('#hero-upload');
+      const legacy = document.querySelector('[data-name-generator-form]');
+      const target = hero || legacy;
+      if (target) (target as HTMLElement).scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
