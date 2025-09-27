@@ -21,11 +21,13 @@ export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
 
-  // Main navigation items for Chinese Name Generator
+  // Main navigation items for BabyFilter homepage anchors
   const mainNavItems: NavItem[] = [
     { label: "Home", href: "/" },
-    { label: "Popular Names", href: "/product/popular-names" },
-    { label: "About", href: "/product/about" },
+    { label: "Features", href: "/#features" },
+    { label: "How It Works", href: "/#how-it-works" },
+    { label: "Use Cases", href: "/#use-cases" },
+    { label: "FAQ", href: "/#faq" },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -82,10 +84,10 @@ export default function Header({ user }: HeaderProps) {
           ) : (
             <div className="hidden md:flex gap-2">
               <Button asChild size="sm" variant="outline">
-                <Link href="/sign-in">Sign in</Link>
+                <Link href="/#gallery">View Samples</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/sign-up">Sign up</Link>
+                <Link href="/#hero-upload">Try Now</Link>
               </Button>
             </div>
           )}

@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "CREEM_API_URL or CREEM_API_KEY not configured" }, { status: 500 });
     }
 
-    async function tryFetch(path: string) {
+    const tryFetch = async (path: string) => {
       const r = await fetch(`${apiBase}${path}`, {
         method: "GET",
         headers: { "x-api-key": apiKey },
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       });
       if (!r.ok) return null;
       return r.json();
-    }
+    };
 
     // Try endpoints in order of reliability
     let payload: any = null;
