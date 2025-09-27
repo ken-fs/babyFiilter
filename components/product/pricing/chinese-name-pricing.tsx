@@ -42,6 +42,24 @@ const pricingTiers: PricingTier[] = [
     buttonVariant: "outline"
   },
   {
+    id: "subscription-monthly",
+    name: "Pro Monthly",
+    price: "$9.99/mo",
+    credits: 0,
+    description: "Unlimited name generation with premium features",
+    features: [
+      "Unlimited generations",
+      "Advanced personality matching",
+      "Save & manage favorites",
+      "PDF export",
+      "Priority support"
+    ],
+    icon: <Sparkles className="h-6 w-6" />,
+    popular: true,
+    buttonText: "Subscribe",
+    buttonVariant: "default"
+  },
+  {
     id: "credit-pack",
     name: "Credit Pack",
     price: "$5",
@@ -107,11 +125,18 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          productType: 'chinese-name-credits',
-          quantity: 1000, // 1000 credits
-          userId: user.id,
-        }),
+        body: JSON.stringify(
+          tierId === 'subscription-monthly'
+            ? {
+                productType: 'subscription_monthly',
+                userId: user.id,
+              }
+            : {
+                productType: 'chinese-name-credits',
+                quantity: 1000, // 1000 credits
+                userId: user.id,
+              }
+        ),
       });
 
       if (!response.ok) {

@@ -7,6 +7,7 @@ import { useUser } from "@/hooks/use-user";
 import { useToast } from "@/hooks/use-toast";
 
 import NamesGrid from "@/components/product/results/names-grid";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 interface NameData {
   chinese: string;
@@ -308,7 +309,9 @@ export default function ResultsPage() {
                 {isInHistoryMode && currentBatch ? (
                   <>
                     Historical generation for "{currentBatch.englishName}" - 
-                    Created on {new Date(currentBatch.createdAt).toLocaleDateString()}
+                    <span suppressHydrationWarning>
+                      Created on {formatDateYYYYMMDD(currentBatch.createdAt)}
+                    </span>
                   </>
                 ) : (
                   <>

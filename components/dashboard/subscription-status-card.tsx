@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SubscriptionPortalDialog } from "./subscription-portal-dialog";
 import { SubscriptionState } from "@/types/subscriptions";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 type StatusConfig = {
   color: string;
@@ -22,10 +23,6 @@ type StatusConfig = {
 type StatusConfigs = {
   [key in SubscriptionState]: StatusConfig;
 };
-
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString();
-}
 
 function isFutureDate(date: string) {
   return new Date(date) > new Date();
@@ -41,27 +38,27 @@ function getStatusConfig(
     active: {
       color: "text-green-500",
       icon: Package2,
-      message: `Renews on ${formatDate(current_period_end)}`,
+      message: `Renews on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-green-500",
     },
     trialing: {
       color: "text-primary",
       icon: Clock,
-      message: `Trial ends on ${formatDate(current_period_end)}`,
+      message: `Trial ends on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-primary",
     },
     canceled: {
       color: inGracePeriod ? "text-yellow-500" : "text-destructive",
       icon: Ban,
       message: inGracePeriod
-        ? `Access until ${formatDate(current_period_end)}`
-        : `Ended on ${formatDate(current_period_end)}`,
+        ? `Access until ${formatDateYYYYMMDD(current_period_end)}`
+        : `Ended on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: inGracePeriod ? "text-yellow-500" : "text-destructive",
     },
     past_due: {
       color: "text-yellow-500",
       icon: AlertCircle,
-      message: `Payment due - Access until ${formatDate(current_period_end)}`,
+      message: `Payment due - Access until ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-yellow-500",
     },
     unpaid: {
@@ -73,7 +70,7 @@ function getStatusConfig(
     paused: {
       color: "text-yellow-500",
       icon: PauseCircle,
-      message: `Paused until ${formatDate(current_period_end)}`,
+      message: `Paused until ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-yellow-500",
     },
     incomplete: {
@@ -85,7 +82,7 @@ function getStatusConfig(
     expired: {
       color: "text-destructive",
       icon: Ban,
-      message: `Expired on ${formatDate(current_period_end)}`,
+      message: `Expired on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-destructive",
     },
   };

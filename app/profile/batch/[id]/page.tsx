@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import NameCard from "@/components/product/results/name-card";
+import { formatDateTimeYYYYMMDDHHMM } from "@/utils/format";
 
 interface NameData {
   chinese: string;
@@ -181,15 +182,7 @@ export default function BatchDetailsPage({ params }: BatchDetailsPageProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTimeYYYYMMDDHHMM(dateString);
 
   const getPlanTypeName = (planType: string) => {
     return planType === '4' ? 'Premium' : 'Standard';
@@ -311,7 +304,7 @@ export default function BatchDetailsPage({ params }: BatchDetailsPageProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="text-right text-sm text-muted-foreground">
+                <div className="text-right text-sm text-muted-foreground" suppressHydrationWarning>
                   <p>Generated</p>
                   <p className="font-medium">{formatDate(batch.createdAt)}</p>
                 </div>
