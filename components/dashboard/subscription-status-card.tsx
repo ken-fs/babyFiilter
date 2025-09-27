@@ -97,11 +97,18 @@ function getStatusConfig(
   );
 }
 
+type SubscriptionStatus = {
+  status: string;
+  current_period_start?: string;
+  current_period_end: string;
+  canceled_at?: string | null;
+  trial_end?: string | null;
+  creem_product_id?: string;
+  plan_name?: string;
+};
+
 type SubscriptionStatusCardProps = {
-  subscription?: {
-    status: string;
-    current_period_end: string;
-  } | null;
+  subscription?: SubscriptionStatus | null;
 };
 
 export function SubscriptionStatusCard({
@@ -149,6 +156,86 @@ export function SubscriptionStatusCard({
               </>
             );
           })()}
+        </div>
+      )}
+      {subscription && (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          {subscription.plan_name && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Plan</span>
+              <span className="font-medium break-all">
+                {subscription.plan_name}
+              </span>
+            </div>
+          )}
+          {subscription.creem_product_id && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Plan ID</span>
+              <span className="font-medium break-all">
+                {subscription.creem_product_id}
+              </span>
+            </div>
+          )}
+          {subscription.current_period_start && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Period Start</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.current_period_start)}
+              </span>
+            </div>
+          )}
+          {subscription.current_period_end && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Period End</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.current_period_end)}
+              </span>
+            </div>
+          )}
+          {(() => {
+            const end = new Date(subscription.current_period_end);
+            const now = new Date();
+            const daysLeft = Math.max(
+              0,
+              Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            );
+            return (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Days Left</span>
+                <span className="font-medium" suppressHydrationWarning>
+                  {Number.isFinite(daysLeft) ? daysLeft : "-"}
+                </span>
+              </div>
+            );
+          })()}
+          {subscription.trial_end && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Trial Ends</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.trial_end)}
+              </span>
+            </div>
+          )}
+          {subscription.canceled_at && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Canceled At</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.canceled_at)}
+              </span>
+            </div>
+          )}
         </div>
       )}
       <div className="mt-4">

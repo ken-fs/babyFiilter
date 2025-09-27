@@ -30,11 +30,20 @@ export function SubscriptionPortalDialog() {
 
         const { data: customer } = await supabase
           .from("customers")
-          .select("creem_customer_id")
+          .select(
+            `
+            creem_customer_id,
+            subscriptions (status, current_period_end)
+          `
+          )
           .eq("user_id", user.id)
           .single();
 
-        setHasCustomer(!!customer?.creem_customer_id);
+        const validId = customer?.creem_customer_id &&
+          !customer.creem_customer_id.startsWith("auto_") &&
+          !customer.creem_customer_id.startsWith("existing_");
+        const hasSubscription = Array.isArray(customer?.subscriptions) && customer!.subscriptions.length > 0;
+        setHasCustomer(Boolean(validId && hasSubscription));
       } catch (err) {
         console.error("Error checking customer:", err);
         setHasCustomer(false);

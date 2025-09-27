@@ -25,7 +25,10 @@ export default async function DashboardPage() {
       *,
       subscriptions (
         status,
+        current_period_start,
         current_period_end,
+        canceled_at,
+        trial_end,
         creem_product_id
       ),
       credits_history (
@@ -38,7 +41,29 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  const subscription = customerData?.subscriptions?.[0];
+  const rawSub = customerData?.subscriptions?.[0] as
+    | {
+        status: string;
+        current_period_start?: string;
+        current_period_end: string;
+        canceled_at?: string | null;
+        trial_end?: string | null;
+        creem_product_id?: string;
+      }
+    | undefined;
+
+  const subscription = rawSub
+    ? {
+        ...rawSub,
+        plan_name:
+          rawSub.creem_product_id &&
+          process.env.CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY &&
+          rawSub.creem_product_id ===
+            process.env.CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY
+            ? "Monthly Subscription"
+            : undefined,
+      }
+    : null;
   const credits = customerData?.credits || 0;
   const recentCreditsHistory = customerData?.credits_history?.slice(0, 2) || [];
 

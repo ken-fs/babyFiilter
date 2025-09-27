@@ -1,4 +1,3 @@
-import { createServiceRoleClient } from "@/utils/supabase/service-role";
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -46,18 +45,47 @@ export async function GET(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Use service role client for database operations
-    const serviceClient = createServiceRoleClient();
-
-    // Get the customer record for this user
-    const { data: customer, error: customerError } = await serviceClient
+    // Query as the signed-in user (RLS allows reading own records)
+    // Get the customer record for this user, along with a subscription
+    const { data: customer, error: customerError } = await supabase
       .from("customers")
-      .select("creem_customer_id")
+      .select(
+        `
+        creem_customer_id,
+        subscriptions (status, current_period_end)
+      `
+      )
       .eq("user_id", user.id)
       .single();
 
     if (customerError || !customer) {
       return new NextResponse("No subscription found", { status: 404 });
+    }
+
+    // Prevent calling Creem when customer_id is just a local placeholder
+    if (
+      !customer.creem_customer_id ||
+      customer.creem_customer_id.startsWith("auto_") ||
+      customer.creem_customer_id.startsWith("existing_")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "No valid billing profile. This account has no Creem customer yet.",
+        },
+        { status: 404 }
+      );
+    }
+
+    // If there is no subscription on file, the portal may not exist
+    const hasSub = Array.isArray(customer.subscriptions)
+      ? customer.subscriptions.length > 0
+      : false;
+    if (!hasSub) {
+      return NextResponse.json(
+        { error: "No subscription found for this account" },
+        { status: 404 }
+      );
     }
 
     // Try multiple possible endpoints in case of API changes
