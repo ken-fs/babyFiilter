@@ -6,6 +6,8 @@ import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { MyNamesCard } from "@/components/dashboard/my-names-card";
 import { GenerationHistoryCard } from "@/components/dashboard/generation-history-card";
 
+import CheckoutConfirmer from "@/components/dashboard/checkout-confirmer";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -88,6 +90,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 px-4 sm:px-8 container">
+      {/* Handle post-payment confirmation if redirected with checkout_id */}
+      <CheckoutConfirmer />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border rounded-lg p-6 sm:p-8 mt-6 sm:mt-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">
