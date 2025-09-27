@@ -10,12 +10,21 @@ export function verifyCreemWebhookSignature(
     // Try to normalize by extracting the hex digest part when present.
     const normalizedSig = extractDigest(signature);
 
-    // Create HMAC SHA256 hash
-    const hmac = createHmac("sha256", secret);
-    const calculatedSignature = hmac.update(payload).digest("hex");
+    // Create HMAC SHA256 hash (binary), then expose as hex & base64 to match either format
+    const raw = createHmac("sha256", secret).update(payload).digest();
+    const calcHex = raw.toString("hex");
+    const calcB64 = raw.toString("base64");
 
-    // Compare signatures using timing-safe comparison
-    return timingSafeEqual(normalizedSig, calculatedSignature);
+    // Compare against both hex and base64 forms
+    if (normalizedSig.length === calcHex.length && timingSafeEqual(normalizedSig, calcHex)) return true;
+    if (normalizedSig.length === calcB64.length && timingSafeEqual(normalizedSig, calcB64)) return true;
+
+    // Some providers prefix algorithm like "sha256=..."
+    const alt = stripAlgoPrefix(normalizedSig);
+    if (alt && alt.length === calcHex.length && timingSafeEqual(alt, calcHex)) return true;
+    if (alt && alt.length === calcB64.length && timingSafeEqual(alt, calcB64)) return true;
+
+    return false;
   } catch (error) {
     console.error("Error verifying webhook signature:", error);
     return false;
@@ -44,7 +53,7 @@ function extractDigest(headerValue: string): string {
     const [k, v] = p.split("=");
     if (!v) continue;
     const key = k?.toLowerCase();
-    if (key === "v1" || key === "signature") return v;
+    if (key === "v1" || key === "signature" || key === "sha256") return v;
   }
   // Fallback: if it contains '=', take the last segment
   if (headerValue.includes("=")) {
@@ -52,4 +61,11 @@ function extractDigest(headerValue: string): string {
     return seg || headerValue;
   }
   return headerValue;
+}
+
+function stripAlgoPrefix(v: string): string | null {
+  if (!v) return null;
+  const idx = v.indexOf("=");
+  if (idx > 0 && /sha\d{3}/i.test(v.slice(0, idx))) return v.slice(idx + 1);
+  return v;
 }

@@ -25,11 +25,19 @@ export async function POST(request: Request) {
       "";
 
     // Verify the webhook signature
-    if (
-      !signature ||
-      !verifyCreemWebhookSignature(body, signature, CREEM_WEBHOOK_SECRET)
-    ) {
-      console.error("Invalid webhook signature");
+    const valid = signature && verifyCreemWebhookSignature(body, signature, CREEM_WEBHOOK_SECRET);
+    if (!valid) {
+      if (process.env.DEBUG_CREEM_SIGNATURE === '1') {
+        console.error("Invalid webhook signature", {
+          haveHeaders: {
+            'creem-signature': !!h.get("creem-signature"),
+            'x-creem-signature': !!h.get("x-creem-signature"),
+            'signature': !!h.get("signature"),
+          },
+          sigPrefix: signature?.slice(0, 12) || null,
+          bodyLen: body.length,
+        });
+      }
       return new NextResponse("Invalid signature", { status: 401 });
     }
 
