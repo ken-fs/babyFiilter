@@ -163,11 +163,15 @@ npm i
    - 在Creem.io中创建订阅项目和积分项目
    - 复制项目ID并配置到代码中
 
-6. 完整的环境变量示例
-   ```
-   # Supabase配置
-   NEXT_PUBLIC_SUPABASE_URL=你的supabaseURL
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=你的supabase pubilc key
+6. 完整的环境变量示例（注意 Supabase 配置）
+  ```
+  # Supabase配置
+   # 在 Supabase 控制台 Settings → API 页面复制：
+   # - Project URL（形如 https://<project-ref>.supabase.co）
+   # - anon public key
+   # 不要把 Settings 页面链接粘贴到这里！
+   NEXT_PUBLIC_SUPABASE_URL=你的Supabase项目URL (例如 https://xxxx.supabase.co)
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=你的Supabase anon public key
    SUPABASE_SERVICE_ROLE_KEY=你的supabase SERVICE_ROLE key
 
    # Creem配置
