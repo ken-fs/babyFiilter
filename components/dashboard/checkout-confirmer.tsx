@@ -13,11 +13,17 @@ export default function CheckoutConfirmer() {
 
     const url = new URL(window.location.href);
     const checkoutId = url.searchParams.get("checkout_id") || url.searchParams.get("id");
-    if (!checkoutId) return;
+    const subscriptionId = url.searchParams.get("subscription_id");
+    const orderId = url.searchParams.get("order_id");
+    if (!checkoutId && !subscriptionId && !orderId) return;
 
     (async () => {
       try {
-        const res = await fetch(`/api/creem/confirm?checkout_id=${encodeURIComponent(checkoutId)}`, {
+        const params = new URLSearchParams();
+        if (checkoutId) params.set("checkout_id", checkoutId);
+        if (subscriptionId) params.set("subscription_id", subscriptionId);
+        if (orderId) params.set("order_id", orderId);
+        const res = await fetch(`/api/creem/confirm?${params.toString()}`, {
           method: "GET",
           cache: "no-store",
         });
@@ -27,6 +33,11 @@ export default function CheckoutConfirmer() {
         // Remove query params from URL without full reload
         url.searchParams.delete("checkout_id");
         url.searchParams.delete("id");
+        url.searchParams.delete("order_id");
+        url.searchParams.delete("subscription_id");
+        url.searchParams.delete("customer_id");
+        url.searchParams.delete("product_id");
+        url.searchParams.delete("signature");
         window.history.replaceState({}, "", url.pathname + (url.search ? `?${url.searchParams.toString()}` : "") + url.hash);
         router.refresh();
       }
@@ -35,4 +46,3 @@ export default function CheckoutConfirmer() {
 
   return null;
 }
-
