@@ -509,7 +509,7 @@ export default function NameCard({
                 }`}
                 onClick={handleGeneratePDF}
                 disabled={isGeneratingPDF}
-                title="Generate PDF Certificate (1 Credit)"
+                title="Generate PDF Certificate (1 credit; free for subscribers)"
               >
                 {isGeneratingPDF ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

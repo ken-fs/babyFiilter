@@ -2,7 +2,8 @@ import ChineseNamePricing from "@/components/product/pricing/chinese-name-pricin
 
 export const metadata = {
   title: "Pricing — BabyFilter",
-  description: "Choose a plan: Free trial, monthly subscription, or credit pack. Safe, watermarked youth‑style mech filter for creators.",
+  description:
+    "Signed-in users get 3 free generations/day. Choose Monthly (unlimited) or a 50 credits pack.",
 };
 
 export default function PricingPage() {
@@ -13,7 +14,7 @@ export default function PricingPage() {
           <div className="max-w-3xl">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Pricing</h1>
             <p className="mt-4 text-muted-foreground">
-              Start with a free trial or get the best value with our credit pack. Monthly subscribers get premium features and priority support.
+              Signed-in users get 3 free generations per day. Subscribe for unlimited usage, or buy a 50 credits pack to pay as you go.
             </p>
           </div>
         </div>

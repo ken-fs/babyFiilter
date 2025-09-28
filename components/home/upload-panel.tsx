@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useUser } from "@/hooks/use-user";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILES = 9;
@@ -12,6 +14,7 @@ export default function UploadPanel() {
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { user } = useUser();
 
   const onFiles = (list: FileList | null) => {
     if (!list) return;
@@ -58,7 +61,7 @@ export default function UploadPanel() {
         <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/5" />
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground mb-2">Upload up to 9 photos · Generate · Download</div>
+            <div className="text-sm text-muted-foreground mb-2">Upload up to 9 photos · Sign in · Generate · Download</div>
             <div className="rounded-lg border border-dashed border-border p-6 md:p-8 text-center">
               <div className="text-lg font-medium">Drop images here</div>
               <div className="mt-2 text-sm text-muted-foreground">JPG/PNG/WebP · ≤10MB each</div>
@@ -113,13 +116,18 @@ export default function UploadPanel() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button className="flex-1" onClick={onGenerate} disabled={files.length === 0 || isGenerating}>
+              <Button className="flex-1" onClick={onGenerate} disabled={!user || files.length === 0 || isGenerating}>
                 {isGenerating ? "Generating…" : "Generate"}
               </Button>
               <Button variant="outline" onClick={clearAll} disabled={files.length === 0}>
                 Clear
               </Button>
             </div>
+            {!user && (
+              <div className="text-xs text-muted-foreground">
+                Please <Link href="/sign-in" className="underline">sign in</Link> to generate results.
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">
               AI‑generated with invisible SynthID watermark (provenance by design)
             </div>

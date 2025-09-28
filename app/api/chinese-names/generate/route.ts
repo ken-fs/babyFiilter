@@ -63,117 +63,122 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For non-authenticated users, check IP rate limiting
+    // Require login; free quota is tracked per user (not IP)
     if (!user) {
-      // Get client IP address
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const clientIp = forwarded ? forwarded.split(',')[0].trim() : realIp || '127.0.0.1';
-      
-      console.log('Free generation attempt:', {
-        forwarded,
-        realIp,
-        clientIp,
-        headers: Object.fromEntries(request.headers.entries())
-      });
-      
-      // Check IP rate limit using Supabase function
-      const { data: canGenerate, error: rateLimitError } = await supabase
-        .rpc('check_ip_rate_limit', { p_client_ip: clientIp });
-      
-      console.log('Rate limit check result:', { canGenerate, rateLimitError });
+      return NextResponse.json(
+        {
+          error: 'Please sign in to generate names. Signed-in users get 3 free generations per day.',
+          requiresAuth: true,
+        },
+        { status: 401 }
+      );
+    }
 
-      if (rateLimitError) {
-        console.error('Rate limit check error:', rateLimitError);
+    // Authenticated: allow via active subscription (unlimited), credits, or daily free quota (3/day)
+    const creditCost = parseInt(planType);
+    console.log('Checking entitlement for user:', user.id, 'cost:', creditCost);
+
+    // Get customer & subscription
+    const { data: customer, error: fetchCustomerError } = await supabase
+      .from('customers')
+      .select('id, credits')
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchCustomerError && (fetchCustomerError as any).code !== 'PGRST116') {
+      console.error('Error fetching customer:', fetchCustomerError);
+      return NextResponse.json(
+        { error: 'Unable to verify account. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    let hasActiveSubscription = false;
+    if (customer) {
+      const { data: sub, error: subError } = await supabase
+        .from('subscriptions')
+        .select('status, current_period_end')
+        .eq('customer_id', customer.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Subscription fetch error:', subError);
+      }
+      const status = sub?.status as string | undefined;
+      hasActiveSubscription = status === 'active' || status === 'trialing';
+    }
+
+    let shouldDeductCredits = false;
+    if (hasActiveSubscription) {
+      console.log('User has active subscription. Unlimited usage.');
+      shouldDeductCredits = false;
+    } else if (customer && (customer.credits || 0) >= creditCost) {
+      shouldDeductCredits = true;
+    } else {
+      // Check daily free quota (3/day) by user
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { count, error: countError } = await supabase
+        .from('name_generation_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDay.toISOString());
+      if (countError) {
+        console.error('Failed to count daily usage:', countError);
         return NextResponse.json(
-          { error: 'Unable to verify rate limit. Please try again.' },
+          { error: 'Unable to verify daily quota. Please try again.' },
           { status: 500 }
         );
       }
-
-      if (!canGenerate) {
+      if ((count || 0) >= 3) {
         return NextResponse.json(
-          { 
-            error: 'Free generation limit reached. You can generate 3 free names per day. Please sign in for unlimited access!',
+          {
+            error:
+              'Daily free limit reached. You have 3 free generations per day. Subscribe for unlimited or purchase credits.',
             rateLimited: true,
-            suggestion: 'Create an account to generate unlimited names'
           },
           { status: 429 }
         );
       }
+      // Within free quota: do not deduct credits
+      shouldDeductCredits = false;
     }
 
-    // Check if user has sufficient credits for paid generation
-    if (user) {
-      const creditCost = parseInt(planType);
-      console.log('Checking credits for user:', user.id, 'cost:', creditCost);
-      
-      // Get customer data from unified customers table
-      const { data: customer, error: fetchError } = await supabase
+    if (shouldDeductCredits) {
+      const newCredits = (customer?.credits || 0) - creditCost;
+      const { error: updateError } = await supabase
         .from('customers')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .update({
+          credits: newCredits,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', customer!.id);
 
-      if (fetchError) {
-        console.error('Error fetching customer:', fetchError);
-        // Don't fail the request, just skip credit deduction for testing
-        console.log('Skipping credit checks due to fetch error');
-      } else {
-        console.log('Customer data:', { 
-          hasCustomer: !!customer, 
-          credits: customer?.credits, 
-          creditCost 
+      if (updateError) {
+        console.error('Credit deduction error:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to deduct credits. Please try again.' },
+          { status: 500 }
+        );
+      }
+
+      // Record credit transaction in history
+      try {
+        await supabase.from('credits_history').insert({
+          customer_id: customer!.id,
+          amount: creditCost,
+          type: 'subtract',
+          description: 'chinese_name_generation',
+          metadata: {
+            operation: 'chinese_name_generation',
+            credits_before: customer!.credits,
+            credits_after: newCredits,
+            plan_type: planType,
+          },
         });
-
-        // Check if customer has sufficient credits
-        if (!customer || customer.credits < creditCost) {
-          console.error('Insufficient credits:', { 
-            hasCustomer: !!customer, 
-            credits: customer?.credits, 
-            creditCost 
-          });
-          return NextResponse.json(
-            { error: 'Insufficient credits. Please purchase more credits.' },
-            { status: 403 }
-          );
-        }
-
-        // Deduct credits from customer
-        const newCredits = customer.credits - creditCost;
-        const { error: updateError } = await supabase
-          .from('customers')
-          .update({
-            credits: newCredits,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
-
-        if (updateError) {
-          console.error('Credit deduction error:', updateError);
-          // Don't fail for testing, just log
-          console.log('Continuing without credit deduction for testing');
-        } else {
-          // Record credit transaction in history
-          try {
-            await supabase
-              .from('credits_history')
-              .insert({
-                customer_id: customer.id,
-                amount: creditCost,
-                type: 'subtract',
-                description: 'chinese_name_generation',
-                metadata: {
-                  operation: 'chinese_name_generation',
-                  credits_before: customer.credits,
-                  credits_after: newCredits,
-                  plan_type: planType
-                }
-              });
-          } catch (error) {
-            console.error('Failed to record credit transaction:', error);
-          }
-        }
+      } catch (error) {
+        console.error('Failed to record credit transaction:', error);
       }
     }
 

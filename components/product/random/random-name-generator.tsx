@@ -7,6 +7,7 @@ import { z } from "zod";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
@@ -472,12 +473,16 @@ export default function RandomNameGenerator() {
                   type="submit" 
                   size="lg"
                   className="w-full h-16 text-xl bg-violet-600 hover:bg-violet-700"
-                  disabled={isGenerating}
+                  disabled={isGenerating || !user}
                 >
                   {isGenerating ? (
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Generating Names...
+                    </div>
+                  ) : !user ? (
+                    <div className="flex items-center gap-3 opacity-80">
+                      🔒 Sign in to Generate
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
@@ -485,6 +490,13 @@ export default function RandomNameGenerator() {
                     </div>
                   )}
                 </Button>
+                {!user && (
+                  <div className="mt-3 text-center">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/sign-in">Sign in to continue</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </form>
           </Form>

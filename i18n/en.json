@@ -16,5 +16,45 @@
   },
   "sheet": {
     "navigation": "Navigation"
+  },
+  "common": {
+    "processing": "Processing..."
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Signed-in users get 3 free generations per day. Subscribe for unlimited, or buy 50 credits and pay as you go.",
+    "faqTitle": "Questions about pricing?",
+    "faqSubtitle": "Credits never expire and work for Standard (1) and Premium (4) generations.",
+    "badges": {
+      "secure": "Secure payments",
+      "instant": "Instant credit delivery",
+      "support": "24/7 support",
+      "guarantee": "Money-back guarantee"
+    },
+    "tierMonthly": {
+      "name": "Monthly Card",
+      "price": "$9.99/mo",
+      "description": "Unlimited generations with premium features",
+      "features": [
+        "Unlimited generations",
+        "Advanced personality matching",
+        "Save & manage favorites",
+        "PDF export",
+        "Priority support"
+      ],
+      "button": "Subscribe"
+    },
+    "tierCredits50": {
+      "name": "50 Credits Pack",
+      "price": "$5",
+      "description": "One-time purchase • Pay as you go",
+      "features": [
+        "50 credits included",
+        "Standard (1) & Premium (4)",
+        "Use anytime, no expiration",
+        "Export to PDF (1)"
+      ],
+      "button": "Purchase Credits"
+    }
   }
 }

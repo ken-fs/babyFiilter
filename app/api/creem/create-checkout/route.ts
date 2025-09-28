@@ -29,14 +29,20 @@ export async function POST(request: Request) {
 
     // Map incoming product type to Creem product and metadata
     if (productType === "chinese-name-credits") {
-      const credits = typeof quantity === "number" && quantity > 0 ? quantity : 1000;
-      const productId = process.env.CREEM_CREDITS_PRODUCT_ID_1000;
+      const credits = typeof quantity === "number" && quantity > 0 ? quantity : 50;
+      // Choose product ID by quantity (supports 50 default; fallback to legacy 1000)
+      const productId =
+        credits === 50
+          ? process.env.CREEM_CREDITS_PRODUCT_ID_50
+          : process.env.CREEM_CREDITS_PRODUCT_ID_1000;
 
       if (!productId) {
         return NextResponse.json(
           {
             error:
-              "Missing CREEM_CREDITS_PRODUCT_ID_1000. Please set this env var to your Creem product ID.",
+              credits === 50
+                ? "Missing CREEM_CREDITS_PRODUCT_ID_50. Please set this env var to your Creem product ID."
+                : "Missing CREEM_CREDITS_PRODUCT_ID_1000. Please set this env var to your Creem product ID.",
           },
           { status: 500 }
         );

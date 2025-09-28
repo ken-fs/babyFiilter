@@ -16,5 +16,45 @@
   },
   "sheet": {
     "navigation": "导航"
+  },
+  "common": {
+    "processing": "处理中..."
+  },
+  "pricing": {
+    "title": "选择你的套餐",
+    "subtitle": "登录用户每天可免费生成 3 次；订阅月卡不限量，或购买 50 积分按次使用。",
+    "faqTitle": "价格与套餐常见问题",
+    "faqSubtitle": "积分永久有效，可用于标准（1）和高级（4）生成。",
+    "badges": {
+      "secure": "支付安全",
+      "instant": "积分即时到账",
+      "support": "7×24 支持",
+      "guarantee": "退款保障"
+    },
+    "tierMonthly": {
+      "name": "月卡",
+      "price": "$9.99/月",
+      "description": "不限量生成 + 高级功能",
+      "features": [
+        "不限量生成",
+        "高级个性化匹配",
+        "收藏与管理喜爱名称",
+        "PDF 导出（订阅内不限量）",
+        "优先支持"
+      ],
+      "button": "立即订阅"
+    },
+    "tierCredits50": {
+      "name": "50 积分包",
+      "price": "$5",
+      "description": "一次性购买 · 按次使用",
+      "features": [
+        "包含 50 积分",
+        "标准（1）与高级（4）均可用",
+        "随时使用，不失效",
+        "PDF 导出（1 积分）"
+      ],
+      "button": "购买积分"
+    }
   }
 }

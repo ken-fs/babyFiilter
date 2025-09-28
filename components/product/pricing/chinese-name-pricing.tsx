@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles, Crown, Gift } from "lucide-react";
+import { Check, Sparkles, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface PricingTier {
   id: string;
@@ -23,88 +24,51 @@ interface PricingTier {
   buttonVariant: "default" | "outline";
 }
 
-const pricingTiers: PricingTier[] = [
-  {
-    id: "free-trial",
-    name: "Free Trial",
-    price: "$0",
-    credits: 1,
-    description: "Perfect for trying out our service",
-    features: [
-      "1 free name generation",
-      "Basic name analysis",
-      "Cultural significance",
-      "Pinyin pronunciation",
-      "No registration required"
-    ],
-    icon: <Gift className="h-6 w-6" />,
-    buttonText: "Try Free",
-    buttonVariant: "outline"
-  },
-  {
-    id: "subscription-monthly",
-    name: "Pro Monthly",
-    price: "$9.99/mo",
-    credits: 0,
-    description: "Unlimited name generation with premium features",
-    features: [
-      "Unlimited generations",
-      "Advanced personality matching",
-      "Save & manage favorites",
-      "PDF export",
-      "Priority support"
-    ],
-    icon: <Sparkles className="h-6 w-6" />,
-    popular: true,
-    buttonText: "Subscribe",
-    buttonVariant: "default"
-  },
-  {
-    id: "credit-pack",
-    name: "Credit Pack",
-    price: "$5",
-    credits: 1000,
-    description: "Best value for regular users",
-    features: [
-      "1000 credits included",
-      "Standard & Premium generation",
-      "Personality-based matching",
-      "Custom name preferences",
-      "Unlimited name variations",
-      "Save favorite names",
-      "Export to PDF"
-    ],
-    icon: <Crown className="h-6 w-6" />,
-    popular: true,
-    buttonText: "Purchase Credits",
-    buttonVariant: "default"
-  }
-];
+// tiers are built from i18n inside the component
 
 interface ChineseNamePricingProps {
   onScrollToForm?: () => void;
 }
 
 export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricingProps) {
+  const t = useI18n();
   const router = useRouter();
   const { user } = useUser();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  const handlePurchase = async (tierId: string) => {
-    if (tierId === "free-trial") {
-      // Prefer hero upload panel if present, otherwise fallback to legacy selector
-      const hero = document.querySelector('#hero-upload');
-      const legacy = document.querySelector('[data-name-generator-form]');
-      const target = hero || legacy;
-      if (target) (target as HTMLElement).scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
+  const pricingTiers: PricingTier[] = useMemo(() => [
+    {
+      id: "subscription-monthly",
+      name: t.pricing.tierMonthly.name,
+      price: t.pricing.tierMonthly.price,
+      credits: 0,
+      description: t.pricing.tierMonthly.description,
+      features: t.pricing.tierMonthly.features,
+      icon: <Sparkles className="h-6 w-6" />,
+      popular: true,
+      buttonText: t.pricing.tierMonthly.button,
+      buttonVariant: "default",
+    },
+    {
+      id: "credit-pack-50",
+      name: t.pricing.tierCredits50.name,
+      price: t.pricing.tierCredits50.price,
+      credits: 50,
+      description: t.pricing.tierCredits50.description,
+      features: t.pricing.tierCredits50.features,
+      icon: <Crown className="h-6 w-6" />,
+      popular: false,
+      buttonText: t.pricing.tierCredits50.button,
+      buttonVariant: "default",
+    },
+  ], [t]);
 
+  const handlePurchase = async (tierId: string) => {
     if (!user) {
       toast({
         title: "Sign In Required",
-        description: "Please sign in to purchase credits.",
+        description: "Please sign in to subscribe or purchase credits.",
         variant: "destructive",
       });
       router.push('/sign-in');
@@ -129,7 +93,7 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
               }
             : {
                 productType: 'chinese-name-credits',
-                quantity: 1000, // 1000 credits
+                quantity: 50, // 50 credits
                 userId: user.id,
               }
         ),
@@ -171,10 +135,10 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
             className="text-center space-y-4"
           >
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              Choose Your Plan
+              {t.pricing.title}
             </h2>
             <p className="mx-auto max-w-2xl text-muted-foreground text-lg">
-              Start with a free trial or get the best value with our credit pack for unlimited Chinese name generation
+              {t.pricing.subtitle}
             </p>
           </motion.div>
 
@@ -222,7 +186,7 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
                         <span className="text-5xl font-bold text-foreground">
                           {tier.price}
                         </span>
-                        {tier.id !== "free-trial" && (
+                        {tier.credits > 0 && (
                           <span className="text-muted-foreground text-lg">
                             / {tier.credits} credits
                           </span>
@@ -269,7 +233,7 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
                         {isProcessing === tier.id ? (
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            Processing...
+                            {t.common.processing}
                           </div>
                         ) : (
                           tier.buttonText
@@ -298,28 +262,24 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-center space-y-4 pt-8"
           >
-            <h3 className="text-xl font-semibold text-foreground">
-              Questions about pricing?
-            </h3>
-            <p className="text-muted-foreground">
-              Credits never expire and can be used for both Standard (1 credit) and Premium (4 credits) generations.
-            </p>
+            <h3 className="text-xl font-semibold text-foreground">{t.pricing.faqTitle}</h3>
+            <p className="text-muted-foreground">{t.pricing.faqSubtitle}</p>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Check className="h-3 w-3 text-green-500" />
-                Secure payments
+                {t.pricing.badges.secure}
               </span>
               <span className="flex items-center gap-1">
                 <Check className="h-3 w-3 text-green-500" />
-                Instant credit delivery
+                {t.pricing.badges.instant}
               </span>
               <span className="flex items-center gap-1">
                 <Check className="h-3 w-3 text-green-500" />
-                24/7 support
+                {t.pricing.badges.support}
               </span>
               <span className="flex items-center gap-1">
                 <Check className="h-3 w-3 text-green-500" />
-                Money-back guarantee
+                {t.pricing.badges.guarantee}
               </span>
             </div>
           </motion.div>

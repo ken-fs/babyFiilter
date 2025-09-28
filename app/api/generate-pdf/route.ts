@@ -28,13 +28,15 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   console.log('=== PDF Generation API Called ===');
-  
+
   try {
     const supabase = await createClient();
-    
-    // 检查用户认证
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Authentication required for PDF generation' },
@@ -55,43 +57,44 @@ export async function POST(request: NextRequest) {
     console.log('PDF generation request:', {
       user: user.id,
       chineseName: nameData.chinese,
-      englishName: userData.englishName
+      englishName: userData.englishName,
     });
 
-    // 检查用户积分
+    // Subscription/credits: subscribers unlimited; others need 1 credit
     const { data: customer, error: fetchError } = await supabase
       .from('customers')
-      .select('*')
+      .select('id, credits')
       .eq('user_id', user.id)
       .single();
 
-    if (fetchError) {
+    if (fetchError && (fetchError as any).code !== 'PGRST116') {
       console.error('Error fetching customer:', fetchError);
       return NextResponse.json(
-        { error: 'Unable to verify user credits' },
+        { error: 'Unable to verify user account' },
         { status: 500 }
       );
     }
 
-    if (!customer || customer.credits < 1) {
-      console.log('Insufficient credits:', {
-        hasCustomer: !!customer,
-        credits: customer?.credits
-      });
-      return NextResponse.json(
-        { 
-          error: 'Insufficient credits. PDF generation requires 1 credit.',
-          creditsRequired: 1,
-          currentCredits: customer?.credits || 0
-        },
-        { status: 403 }
-      );
+    let hasActiveSubscription = false;
+    if (customer) {
+      const { data: sub, error: subError } = await supabase
+        .from('subscriptions')
+        .select('status, current_period_end')
+        .eq('customer_id', customer.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (subError && (subError as any).code !== 'PGRST116') {
+        console.error('Subscription fetch error:', subError);
+      }
+      const status = sub?.status as string | undefined;
+      hasActiveSubscription = status === 'active' || status === 'trialing';
     }
 
-    // 生成HTML内容
+    // Generate HTML content
     const htmlContent = generateCertificateHTML(nameData, userData);
-    
-    // 使用Puppeteer生成PDF
+
+    // Render PDF via Puppeteer
     let browser;
     try {
       console.log('Launching Puppeteer...');
@@ -104,20 +107,18 @@ export async function POST(request: NextRequest) {
           '--disable-accelerated-2d-canvas',
           '--no-first-run',
           '--no-zygote',
-          '--single-process', // This can be risky but helps with Docker
-          '--disable-gpu'
+          '--single-process',
+          '--disable-gpu',
         ],
       });
 
       const page = await browser.newPage();
-      
-      // 设置页面内容
+
       await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
-        timeout: 30000
+        timeout: 30000,
       });
 
-      // 生成PDF
       console.log('Generating PDF...');
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -126,32 +127,39 @@ export async function POST(request: NextRequest) {
           top: '0.5cm',
           right: '0.5cm',
           bottom: '0.5cm',
-          left: '0.5cm'
-        }
+          left: '0.5cm',
+        },
       });
 
       await browser.close();
       console.log('PDF generated successfully');
 
-      // 扣除积分
-      const newCredits = customer.credits - 1;
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({
-          credits: newCredits,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+      // Deduct 1 credit for non-subscribers
+      if (!hasActiveSubscription) {
+        if (!customer || (customer.credits || 0) < 1) {
+          return NextResponse.json(
+            {
+              error: 'Insufficient credits. PDF generation requires 1 credit.',
+              creditsRequired: 1,
+              currentCredits: customer?.credits || 0,
+            },
+            { status: 403 }
+          );
+        }
 
-      if (updateError) {
-        console.error('Failed to deduct credits:', updateError);
-        // 注意：PDF已生成，但积分扣除失败
-        // 在生产环境中可能需要回滚或记录这种情况
-      } else {
-        // 记录积分消费历史
-        await supabase
-          .from('credits_history')
-          .insert({
+        const newCredits = (customer.credits || 0) - 1;
+        const { error: updateError } = await supabase
+          .from('customers')
+          .update({
+            credits: newCredits,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', customer.id);
+
+        if (updateError) {
+          console.error('Failed to deduct credits:', updateError);
+        } else {
+          await supabase.from('credits_history').insert({
             customer_id: customer.id,
             amount: 1,
             type: 'subtract',
@@ -162,20 +170,20 @@ export async function POST(request: NextRequest) {
               english_name: userData.englishName,
               credits_before: customer.credits,
               credits_after: newCredits,
-              generated_at: new Date().toISOString()
-            }
+              generated_at: new Date().toISOString(),
+            },
           });
-        
-        console.log('Credits deducted successfully:', {
-          userId: user.id,
-          creditsBefore: customer.credits,
-          creditsAfter: newCredits
-        });
+
+          console.log('Credits deducted successfully:', {
+            userId: user.id,
+            creditsBefore: customer.credits,
+            creditsAfter: newCredits,
+          });
+        }
       }
 
-      // 设置响应头并返回PDF
       const fileName = `${nameData.chinese}_certificate.pdf`;
-      
+
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
@@ -184,7 +192,6 @@ export async function POST(request: NextRequest) {
           'Content-Length': pdfBuffer.length.toString(),
         },
       });
-
     } catch (puppeteerError) {
       console.error('Puppeteer error:', puppeteerError);
       if (browser) {
@@ -192,15 +199,15 @@ export async function POST(request: NextRequest) {
       }
       throw puppeteerError;
     }
-
   } catch (error) {
     console.error('PDF generation error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate PDF. Please try again.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
 }
+
