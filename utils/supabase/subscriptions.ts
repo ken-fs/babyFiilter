@@ -7,11 +7,12 @@ export async function createOrUpdateCustomer(
 ) {
   const supabase = createServiceRoleClient();
 
+  // 1) Try to find by the real Creem customer id
   const { data: existingCustomer, error: fetchError } = await supabase
     .from("customers")
     .select()
     .eq("creem_customer_id", creemCustomer.id)
-    .single();
+    .maybeSingle();
 
   if (fetchError && fetchError.code !== "PGRST116") {
     throw fetchError;
@@ -21,15 +22,47 @@ export async function createOrUpdateCustomer(
     const { error } = await supabase
       .from("customers")
       .update({
-        email: creemCustomer.email,
-        name: creemCustomer.name,
-        country: creemCustomer.country,
+        email: creemCustomer.email || (existingCustomer as any).email,
+        name: creemCustomer.name || (existingCustomer as any).name,
+        country: creemCustomer.country || (existingCustomer as any).country,
         updated_at: new Date().toISOString(),
       })
       .eq("id", existingCustomer.id);
 
     if (error) throw error;
     return existingCustomer.id;
+  }
+
+  // 2) If not found by Creem id, attempt to merge an existing placeholder
+  //    row created for this user (e.g., from /api/credits initialisation).
+  //    We promote that row to the real Creem customer by updating
+  //    its creem_customer_id and metadata rather than inserting a new row.
+  const { data: placeholderCustomer, error: byUserError } = await supabase
+    .from("customers")
+    .select()
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (byUserError && byUserError.code !== "PGRST116") {
+    throw byUserError;
+  }
+
+  if (placeholderCustomer) {
+    const { error: updateError } = await supabase
+      .from("customers")
+      .update({
+        creem_customer_id: creemCustomer.id,
+        email: creemCustomer.email || placeholderCustomer.email,
+        name: creemCustomer.name || placeholderCustomer.name,
+        country: creemCustomer.country || placeholderCustomer.country,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", placeholderCustomer.id);
+
+    if (updateError) throw updateError;
+    return placeholderCustomer.id;
   }
 
   const { data: newCustomer, error } = await supabase

@@ -1,17 +1,31 @@
-import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const updateSession = async (request: NextRequest) => {
   // This `try/catch` block is only here for the interactive tutorial.
   // Feel free to remove once you have Supabase connected.
   try {
-    // Create an unmodified response
+    const pathname = request.nextUrl.pathname;
+    if (process.env.SKIP_AUTH_FETCH === "1") {
+      return NextResponse.next({ request: { headers: request.headers } });
+    }
+    const isProtected = pathname.startsWith("/dashboard");
+
+    // Fast path: avoid creating Supabase client or doing any network call
+    // in middleware for public routes to prevent noisy fetch failures.
+    if (!isProtected) {
+      return NextResponse.next({
+        request: { headers: request.headers },
+      });
+    }
+
+    // Create an unmodified response for protected routes
     let response = NextResponse.next({
       request: {
         headers: request.headers,
       },
     });
 
+    const { createServerClient } = await import("@supabase/ssr");
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,12 +49,10 @@ export const updateSession = async (request: NextRequest) => {
       }
     );
 
-    // This will refresh session if expired - required for Server Components
+    // Refresh session for protected routes only
     // https://supabase.com/docs/guides/auth/server-side/nextjs
     const user = await supabase.auth.getUser();
-
-    // Only protect dashboard routes
-    if (request.nextUrl.pathname.startsWith("/dashboard") && user.error) {
+    if (user.error) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
     // Redirect to dashboard all the time if user is logged in

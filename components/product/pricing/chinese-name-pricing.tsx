@@ -42,6 +42,24 @@ const pricingTiers: PricingTier[] = [
     buttonVariant: "outline"
   },
   {
+    id: "subscription-monthly",
+    name: "Pro Monthly",
+    price: "$9.99/mo",
+    credits: 0,
+    description: "Unlimited name generation with premium features",
+    features: [
+      "Unlimited generations",
+      "Advanced personality matching",
+      "Save & manage favorites",
+      "PDF export",
+      "Priority support"
+    ],
+    icon: <Sparkles className="h-6 w-6" />,
+    popular: true,
+    buttonText: "Subscribe",
+    buttonVariant: "default"
+  },
+  {
     id: "credit-pack",
     name: "Credit Pack",
     price: "$5",
@@ -75,15 +93,11 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
 
   const handlePurchase = async (tierId: string) => {
     if (tierId === "free-trial") {
-      // Call the scroll to form function if provided, otherwise scroll to form section
-      if (onScrollToForm) {
-        onScrollToForm();
-      } else {
-        const formSection = document.querySelector('[data-name-generator-form]');
-        if (formSection) {
-          formSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
+      // Prefer hero upload panel if present, otherwise fallback to legacy selector
+      const hero = document.querySelector('#hero-upload');
+      const legacy = document.querySelector('[data-name-generator-form]');
+      const target = hero || legacy;
+      if (target) (target as HTMLElement).scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -107,11 +121,18 @@ export default function ChineseNamePricing({ onScrollToForm }: ChineseNamePricin
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          productType: 'chinese-name-credits',
-          quantity: 1000, // 1000 credits
-          userId: user.id,
-        }),
+        body: JSON.stringify(
+          tierId === 'subscription-monthly'
+            ? {
+                productType: 'subscription_monthly',
+                userId: user.id,
+              }
+            : {
+                productType: 'chinese-name-credits',
+                quantity: 1000, // 1000 credits
+                userId: user.id,
+              }
+        ),
       });
 
       if (!response.ok) {

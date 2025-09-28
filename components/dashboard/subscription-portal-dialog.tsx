@@ -30,11 +30,20 @@ export function SubscriptionPortalDialog() {
 
         const { data: customer } = await supabase
           .from("customers")
-          .select("creem_customer_id")
+          .select(
+            `
+            creem_customer_id,
+            subscriptions (status, current_period_end)
+          `
+          )
           .eq("user_id", user.id)
           .single();
 
-        setHasCustomer(!!customer?.creem_customer_id);
+        const validId = customer?.creem_customer_id &&
+          !customer.creem_customer_id.startsWith("auto_") &&
+          !customer.creem_customer_id.startsWith("existing_");
+        const hasSubscription = Array.isArray(customer?.subscriptions) && customer!.subscriptions.length > 0;
+        setHasCustomer(Boolean(validId && hasSubscription));
       } catch (err) {
         console.error("Error checking customer:", err);
         setHasCustomer(false);
@@ -49,13 +58,20 @@ export function SubscriptionPortalDialog() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/creem/customer-portal");
+      const response = await fetch("/api/creem/customer-portal", {
+        // Be explicit so auth cookies are sent in all browsers
+        credentials: "same-origin",
+      });
       if (!response.ok) {
-        throw new Error("Failed to get portal link");
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.error || "Failed to get portal link");
       }
 
       const { customer_portal_link } = await response.json();
-      window.open(customer_portal_link, "_blank");
+      if (!customer_portal_link || typeof customer_portal_link !== "string") {
+        throw new Error("Portal link not available");
+      }
+      window.open(customer_portal_link, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("Error getting portal link:", err);
       setError("Failed to access subscription portal. Please try again later.");

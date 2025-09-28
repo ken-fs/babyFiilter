@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SubscriptionPortalDialog } from "./subscription-portal-dialog";
 import { SubscriptionState } from "@/types/subscriptions";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 type StatusConfig = {
   color: string;
@@ -22,10 +23,6 @@ type StatusConfig = {
 type StatusConfigs = {
   [key in SubscriptionState]: StatusConfig;
 };
-
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString();
-}
 
 function isFutureDate(date: string) {
   return new Date(date) > new Date();
@@ -41,27 +38,27 @@ function getStatusConfig(
     active: {
       color: "text-green-500",
       icon: Package2,
-      message: `Renews on ${formatDate(current_period_end)}`,
+      message: `Renews on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-green-500",
     },
     trialing: {
       color: "text-primary",
       icon: Clock,
-      message: `Trial ends on ${formatDate(current_period_end)}`,
+      message: `Trial ends on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-primary",
     },
     canceled: {
       color: inGracePeriod ? "text-yellow-500" : "text-destructive",
       icon: Ban,
       message: inGracePeriod
-        ? `Access until ${formatDate(current_period_end)}`
-        : `Ended on ${formatDate(current_period_end)}`,
+        ? `Access until ${formatDateYYYYMMDD(current_period_end)}`
+        : `Ended on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: inGracePeriod ? "text-yellow-500" : "text-destructive",
     },
     past_due: {
       color: "text-yellow-500",
       icon: AlertCircle,
-      message: `Payment due - Access until ${formatDate(current_period_end)}`,
+      message: `Payment due - Access until ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-yellow-500",
     },
     unpaid: {
@@ -73,7 +70,7 @@ function getStatusConfig(
     paused: {
       color: "text-yellow-500",
       icon: PauseCircle,
-      message: `Paused until ${formatDate(current_period_end)}`,
+      message: `Paused until ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-yellow-500",
     },
     incomplete: {
@@ -85,7 +82,7 @@ function getStatusConfig(
     expired: {
       color: "text-destructive",
       icon: Ban,
-      message: `Expired on ${formatDate(current_period_end)}`,
+      message: `Expired on ${formatDateYYYYMMDD(current_period_end)}`,
       iconColor: "text-destructive",
     },
   };
@@ -100,11 +97,18 @@ function getStatusConfig(
   );
 }
 
+type SubscriptionStatus = {
+  status: string;
+  current_period_start?: string;
+  current_period_end: string;
+  canceled_at?: string | null;
+  trial_end?: string | null;
+  creem_product_id?: string;
+  plan_name?: string;
+};
+
 type SubscriptionStatusCardProps = {
-  subscription?: {
-    status: string;
-    current_period_end: string;
-  } | null;
+  subscription?: SubscriptionStatus | null;
 };
 
 export function SubscriptionStatusCard({
@@ -152,6 +156,86 @@ export function SubscriptionStatusCard({
               </>
             );
           })()}
+        </div>
+      )}
+      {subscription && (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          {subscription.plan_name && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Plan</span>
+              <span className="font-medium break-all">
+                {subscription.plan_name}
+              </span>
+            </div>
+          )}
+          {subscription.creem_product_id && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Plan ID</span>
+              <span className="font-medium break-all">
+                {subscription.creem_product_id}
+              </span>
+            </div>
+          )}
+          {subscription.current_period_start && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Period Start</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.current_period_start)}
+              </span>
+            </div>
+          )}
+          {subscription.current_period_end && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Period End</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.current_period_end)}
+              </span>
+            </div>
+          )}
+          {(() => {
+            const end = new Date(subscription.current_period_end);
+            const now = new Date();
+            const daysLeft = Math.max(
+              0,
+              Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            );
+            return (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Days Left</span>
+                <span className="font-medium" suppressHydrationWarning>
+                  {Number.isFinite(daysLeft) ? daysLeft : "-"}
+                </span>
+              </div>
+            );
+          })()}
+          {subscription.trial_end && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Trial Ends</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.trial_end)}
+              </span>
+            </div>
+          )}
+          {subscription.canceled_at && (
+            <div
+              className="flex items-center justify-between"
+              suppressHydrationWarning
+            >
+              <span className="text-muted-foreground">Canceled At</span>
+              <span className="font-medium">
+                {formatDateYYYYMMDD(subscription.canceled_at)}
+              </span>
+            </div>
+          )}
         </div>
       )}
       <div className="mt-4">

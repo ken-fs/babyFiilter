@@ -1,15 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  devIndicators: {
-    appIsrStatus: false,
-  },
-  
   // Configure webpack to ignore the external folder
   webpack: (config: any) => {
     config.watchOptions = {
       ...config.watchOptions,
-      ignored: ['**/Chinesename.club/**', '**/node_modules/**'],
+      ignored: ["**/Chinesename.club/**", "**/node_modules/**"],
     };
     return config;
   },

@@ -6,6 +6,8 @@ import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
 import { MyNamesCard } from "@/components/dashboard/my-names-card";
 import { GenerationHistoryCard } from "@/components/dashboard/generation-history-card";
 
+import CheckoutConfirmer from "@/components/dashboard/checkout-confirmer";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -17,17 +19,60 @@ export default async function DashboardPage() {
     return redirect("/sign-in");
   }
 
-  // Get customer data including credits and subscription
+  // Prefer subscription records directly (handles multiple customer rows gracefully)
+  const { data: activeOrTrialSub } = await supabase
+    .from("subscriptions")
+    .select(
+      `status, current_period_start, current_period_end, canceled_at, trial_end, creem_product_id, customers!inner(user_id)`
+    )
+    .eq("customers.user_id", user.id)
+    .in("status", ["active", "trialing"]) // prefer active/trialing
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: fallbackSub } = !activeOrTrialSub
+    ? await supabase
+        .from("subscriptions")
+        .select(
+          `status, current_period_start, current_period_end, canceled_at, trial_end, creem_product_id, customers!inner(user_id)`
+        )
+        .eq("customers.user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null } as any;
+
+  const rawSub = (activeOrTrialSub || fallbackSub) as
+    | {
+        status: string;
+        current_period_start?: string;
+        current_period_end: string;
+        canceled_at?: string | null;
+        trial_end?: string | null;
+        creem_product_id?: string;
+      }
+    | null;
+
+  const subscription = rawSub
+    ? {
+        ...rawSub,
+        plan_name:
+          rawSub.creem_product_id &&
+          process.env.CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY &&
+          rawSub.creem_product_id ===
+            process.env.CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY
+            ? "Monthly Subscription"
+            : undefined,
+      }
+    : null;
+
+  // Get customer data for credits and history (pick most recently updated row)
   const { data: customerData } = await supabase
     .from("customers")
     .select(
       `
       *,
-      subscriptions (
-        status,
-        current_period_end,
-        creem_product_id
-      ),
       credits_history (
         amount,
         type,
@@ -36,14 +81,17 @@ export default async function DashboardPage() {
     `
     )
     .eq("user_id", user.id)
-    .single();
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const subscription = customerData?.subscriptions?.[0];
   const credits = customerData?.credits || 0;
   const recentCreditsHistory = customerData?.credits_history?.slice(0, 2) || [];
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6 sm:gap-8 px-4 sm:px-8 container">
+      {/* Handle post-payment confirmation if redirected with checkout_id */}
+      <CheckoutConfirmer />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border rounded-lg p-6 sm:p-8 mt-6 sm:mt-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">

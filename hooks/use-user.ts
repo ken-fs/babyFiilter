@@ -9,8 +9,12 @@ export function useUser() {
   const supabase = createClient();
 
   useEffect(() => {
-    // Get user on mount
-    getUser();
+    // Hydrate from server (cookie-based) so client matches real session
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH_FETCH !== "1") {
+      getUserFromServer();
+    } else {
+      setLoading(false);
+    }
 
     // Listen for changes on auth state (login, sign out, etc.)
     const {
@@ -25,14 +29,15 @@ export function useUser() {
     };
   }, []);
 
-  async function getUser() {
+  // Use server to read auth from cookies; works after server-side sign-in
+  async function getUserFromServer() {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+      const res = await fetch("/api/auth/user", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const data = await res.json();
+      setUser(data.user ?? null);
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error("Error getting user from server:", error);
     } finally {
       setLoading(false);
     }

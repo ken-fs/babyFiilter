@@ -7,6 +7,8 @@ import {
   createOrUpdateSubscription,
   addCreditsToCustomer,
 } from "@/utils/supabase/subscriptions";
+import type { CreemCustomer } from "@/types/creem";
+import { createServiceRoleClient } from "@/utils/supabase/service-role";
 
 const CREEM_WEBHOOK_SECRET = process.env.CREEM_WEBHOOK_SECRET!;
 
@@ -15,14 +17,27 @@ export async function POST(request: Request) {
     const body = await request.text();
 
     const headersList = headers();
-    const signature = (await headersList).get("creem-signature") || "";
+    const h = await headersList;
+    const signature =
+      h.get("creem-signature") ||
+      h.get("x-creem-signature") ||
+      h.get("signature") ||
+      "";
 
     // Verify the webhook signature
-    if (
-      !signature ||
-      !verifyCreemWebhookSignature(body, signature, CREEM_WEBHOOK_SECRET)
-    ) {
-      console.error("Invalid webhook signature");
+    const valid = signature && verifyCreemWebhookSignature(body, signature, CREEM_WEBHOOK_SECRET);
+    if (!valid) {
+      if (process.env.DEBUG_CREEM_SIGNATURE === '1') {
+        console.error("Invalid webhook signature", {
+          haveHeaders: {
+            'creem-signature': !!h.get("creem-signature"),
+            'x-creem-signature': !!h.get("x-creem-signature"),
+            'signature': !!h.get("signature"),
+          },
+          sigPrefix: signature?.slice(0, 12) || null,
+          bodyLen: body.length,
+        });
+      }
       return new NextResponse("Invalid signature", { status: 401 });
     }
 
@@ -109,8 +124,12 @@ async function handleSubscriptionActive(event: CreemWebhookEvent) {
 
   try {
     // Create or update customer
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
 
@@ -128,11 +147,85 @@ async function handleSubscriptionPaid(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status and period
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
-    await createOrUpdateSubscription(subscription, customerId);
+    const subscriptionId = await createOrUpdateSubscription(subscription, customerId);
+
+    // Award monthly credits for specific subscription products
+    const monthlyProductId = process.env.CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY;
+    const configuredMonthlyCredits = parseInt(
+      process.env.CREEM_SUBSCRIPTION_MONTHLY_CREDITS || "",
+      10
+    );
+
+    // Resolve product id from subscription payload
+    const productId =
+      typeof subscription?.product === "string"
+        ? subscription?.product
+        : subscription?.product?.id;
+
+    if (!monthlyProductId) {
+      console.warn(
+        "CREEM_SUBSCRIPTION_PRODUCT_ID_MONTHLY not set. Skipping monthly credit award."
+      );
+      return;
+    }
+
+    if (productId !== monthlyProductId) {
+      console.log(
+        `Subscription product ${productId} does not match monthly product ${monthlyProductId}. Skipping credit award.`
+      );
+      return;
+    }
+
+    let monthlyCredits = Number.isFinite(configuredMonthlyCredits)
+      ? configuredMonthlyCredits
+      : undefined;
+
+    // Try to read credits from product metadata if not configured
+    if (
+      !monthlyCredits &&
+      typeof subscription?.product !== "string" &&
+      subscription?.product?.metadata?.credits
+    ) {
+      monthlyCredits = Number(subscription.product.metadata.credits);
+    }
+
+    if (!monthlyCredits || monthlyCredits <= 0) {
+      console.warn(
+        "Monthly credits not configured (CREEM_SUBSCRIPTION_MONTHLY_CREDITS) and no product metadata. Skipping credit award."
+      );
+      return;
+    }
+
+    // Idempotency: ensure we don't double-credit for the same event
+    const serviceClient = createServiceRoleClient();
+    const { data: existingHistory } = await serviceClient
+      .from("credits_history")
+      .select("id")
+      .eq("creem_order_id", event.id)
+      .maybeSingle();
+
+    if (existingHistory) {
+      console.log(
+        `Credits already awarded for event ${event.id}. Skipping duplicate.`
+      );
+      return;
+    }
+
+    await addCreditsToCustomer(
+      customerId,
+      monthlyCredits,
+      // Use event.id as idempotency key in credits_history.creem_order_id
+      event.id,
+      `Monthly subscription credits (sub:${subscriptionId})`
+    );
   } catch (error) {
     console.error("Error handling subscription paid:", error);
     throw error;
@@ -145,8 +238,12 @@ async function handleSubscriptionCanceled(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);
@@ -162,8 +259,12 @@ async function handleSubscriptionExpired(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);
@@ -179,8 +280,12 @@ async function handleSubscriptionTrialing(event: CreemWebhookEvent) {
 
   try {
     // Update subscription status
+    const normalizedCustomer: CreemCustomer =
+      typeof subscription.customer === "string"
+        ? ({ id: subscription.customer } as any)
+        : (subscription.customer as any);
     const customerId = await createOrUpdateCustomer(
-      subscription.customer as any,
+      normalizedCustomer,
       subscription.metadata?.user_id
     );
     await createOrUpdateSubscription(subscription, customerId);

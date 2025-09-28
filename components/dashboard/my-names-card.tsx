@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Star, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 interface SavedName {
   id: string;
@@ -219,8 +220,8 @@ export function MyNamesCard() {
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t">
-                <div className="text-xs text-muted-foreground">
-                  Created {new Date(name.created_at).toLocaleDateString()}
+                <div className="text-xs text-muted-foreground" suppressHydrationWarning>
+                  Created {formatDateYYYYMMDD(name.created_at)}
                 </div>
                 <Button variant="ghost" size="sm" className="text-xs">
                   <Eye className="h-3 w-3 mr-1" />

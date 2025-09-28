@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight, MoreHorizontal, Heart } from "lucide-react";
 import NameCard from "./name-card";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 interface NameData {
   chinese: string;
@@ -159,8 +160,8 @@ export default function NamesGrid({
           {isHistoryView && currentBatchInfo ? (
             <>
               Generated for "{currentBatchInfo.englishName}" ({currentBatchInfo.gender}, {currentBatchInfo.planType} plan) - {names.length} unique names.
-              <div className="text-sm mt-1">
-                Created: {new Date(currentBatchInfo.createdAt).toLocaleDateString()}
+              <div className="text-sm mt-1" suppressHydrationWarning>
+                Created: {formatDateYYYYMMDD(currentBatchInfo.createdAt)}
               </div>
             </>
           ) : (

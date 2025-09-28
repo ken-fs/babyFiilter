@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, TrendingUp, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { formatDateYYYYMMDD } from "@/utils/format";
 
 interface GenerationLog {
   id: string;
@@ -149,9 +150,9 @@ export function GenerationHistoryCard() {
                           {getPlanTypeLabel(log.plan_type)}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground" suppressHydrationWarning>
                         <Calendar className="h-3 w-3" />
-                        {new Date(log.created_at).toLocaleDateString()}
+                        {formatDateYYYYMMDD(log.created_at)}
                         <span>•</span>
                         <span className="capitalize">{log.gender}</span>
                         {log.has_personality_traits && (

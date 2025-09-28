@@ -28,6 +28,7 @@ import {
   Trash2,
   AlertTriangle
 } from "lucide-react";
+import { formatDateTimeYYYYMMDDHHMM } from "@/utils/format";
 
 interface GenerationBatch {
   id: string;
@@ -130,15 +131,7 @@ export default function ProfilePage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTimeYYYYMMDDHHMM(dateString);
 
   const getPlanTypeName = (planType: string) => {
     return planType === '4' ? 'Premium' : 'Standard';

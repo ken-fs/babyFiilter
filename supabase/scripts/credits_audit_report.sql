@@ -2,7 +2,7 @@
 -- 用于追踪所有积分操作，确保核算清晰
 
 -- 使用方式（推荐）：先设置参数，再执行整段脚本
---   SET app.target_user_email = 'user@example.com';
+  SET app.target_user_email = 'user@example.com';
 
 -- ==== 1 & 2. 用户基本信息 + 积分历史详情（时间倒序） ====
 WITH params AS (

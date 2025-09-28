@@ -1,6 +1,7 @@
 -- 查询特定用户积分和历史记录的SQL脚本
 
 -- ==== 方法1：通过邮箱查询用户积分 ====
+  SET app.target_user_email = '493129720@qq.com';
 -- 替换 'your_email@example.com' 为实际邮箱
 SELECT 
     au.email,
@@ -12,7 +13,7 @@ SELECT
     c.metadata
 FROM auth.users au
 LEFT JOIN public.customers c ON au.id = c.user_id
-WHERE au.email = 'your_email@example.com';
+WHERE au.email = 'app.target_user_email';
 
 -- ==== 方法2：查看用户的积分历史记录 ====
 -- 替换 'your_email@example.com' 为实际邮箱
@@ -26,7 +27,7 @@ SELECT
 FROM auth.users au
 JOIN public.customers c ON au.id = c.user_id
 JOIN public.credits_history ch ON c.id = ch.customer_id
-WHERE au.email = 'your_email@example.com'
+WHERE au.email = 'app.target_user_email'
 ORDER BY ch.created_at DESC
 LIMIT 10;
 
