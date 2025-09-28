@@ -61,8 +61,10 @@ export default function Header({ user }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
+          <div className="hidden sm:flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
           {user ? (
             <div className="hidden md:flex items-center gap-2">
               {isDashboard && (

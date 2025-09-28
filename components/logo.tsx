@@ -12,7 +12,7 @@ export function Logo() {
       >
         🤖
       </span>
-      <span className="font-bold text-lg bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent tracking-wide">
+      <span className="hidden sm:inline font-bold text-lg bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent tracking-wide">
         BabyFilter
       </span>
     </Link>

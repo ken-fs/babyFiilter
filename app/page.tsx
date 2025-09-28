@@ -56,14 +56,7 @@ export default function Home() {
               <p className="mt-6 text-lg md:text-xl text-muted-foreground">
                 Transform faces, pets, and objects into identity‑faithful mech‑stylized portraits with youth‑like proportions. BabyFilter is a creator‑grade filter that locks style server‑side, preserves structure, and renders realistic hard‑surface panels, bolts, joints, LEDs, and reflections. Not a toy “beauty app” — it’s a robust visual effect pipeline for content teams and enthusiasts.
               </p>
-              <div className="mt-6">
-                <a
-                  href="/pricing"
-                  className="inline-flex items-center justify-center h-12 px-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md shadow-lg"
-                >
-                  Pricing
-                </a>
-              </div>
+            
             </div>
 
             <div className="mt-4 lg:mt-0">

@@ -11,6 +11,8 @@ import {
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useI18n } from "@/hooks/use-i18n";
 
 interface MobileNavProps {
@@ -45,6 +47,10 @@ export function MobileNav({ items, user, isDashboard }: MobileNavProps) {
           ))}
         </nav>
         <div className="mt-auto pt-4 border-t">
+          <div className="flex items-center gap-2 mb-3">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
           {user ? (
             <div className="flex flex-col gap-2">
               {user.email && (
