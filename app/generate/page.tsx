@@ -192,7 +192,15 @@ export default function GeneratePage() {
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Intensity</Label>
-              <RadioGroup value={intensity} onValueChange={(v) => setIntensity(v as Intensity)} className="grid grid-cols-3 gap-2">
+              {/*
+                On narrower sidebars the three inline radios could overflow.
+                Use 2 columns by default and expand to 3 on sm+ to avoid width issues.
+              */}
+              <RadioGroup
+                value={intensity}
+                onValueChange={(v) => setIntensity(v as Intensity)}
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              >
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="light" id="int-light" />
                   <Label htmlFor="int-light">Light</Label>
@@ -307,4 +315,3 @@ function CompareView({
     </div>
   );
 }
-
