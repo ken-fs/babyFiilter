@@ -8,7 +8,7 @@ import { LanguageSwitcher } from "./language-switcher";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "./mobile-nav";
-import { useLanguage } from "@/hooks/use-language";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface HeaderProps {
   user: any;
@@ -22,46 +22,16 @@ interface NavItem {
 export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
-  const lang = useLanguage();
-
-  const t = {
-    en: {
-      generate: "Generate",
-      features: "Features",
-      samples: "Samples",
-      pricing: "Pricing",
-      faq: "FAQ",
-      docs: "Docs",
-      profile: "Profile",
-      dashboard: "Dashboard",
-      signOut: "Sign out",
-      signIn: "Sign in",
-      signUp: "Sign up",
-    },
-    zh: {
-      generate: "生成",
-      features: "功能",
-      samples: "样例",
-      pricing: "价格",
-      faq: "常见问题",
-      docs: "文档",
-      profile: "个人资料",
-      dashboard: "控制台",
-      signOut: "退出",
-      signIn: "登录",
-      signUp: "注册",
-    },
-  } as const;
-  const L = t[lang] || t.en;
+  const t = useI18n();
 
   // Main navigation modeled after Nano Banana-style layout
   const mainNavItems: NavItem[] = [
-    { label: L.generate, href: "/#editor" },
-    { label: L.features, href: "/#features" },
-    { label: L.samples, href: "/#gallery" },
-    { label: L.pricing, href: "/pricing" },
-    { label: L.faq, href: "/#faq" },
-    { label: L.docs, href: "/docs" },
+    { label: t.nav.generate, href: "/#editor" },
+    { label: t.nav.features, href: "/#features" },
+    { label: t.nav.samples, href: "/#gallery" },
+    { label: t.nav.pricing, href: "/pricing" },
+    { label: t.nav.faq, href: "/#faq" },
+    { label: t.nav.docs, href: "/docs" },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -103,26 +73,26 @@ export default function Header({ user }: HeaderProps) {
               {!isDashboard && (
                 <>
                   <Button asChild size="sm" variant="default">
-                    <Link href="/profile">{L.profile}</Link>
+                    <Link href="/profile">{t.actions.profile}</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href="/dashboard">{L.dashboard}</Link>
+                    <Link href="/dashboard">{t.actions.dashboard}</Link>
                   </Button>
                 </>
               )}
               <form action={signOutAction}>
                 <Button type="submit" variant="outline" size="sm">
-                  {L.signOut}
+                  {t.actions.signOut}
                 </Button>
               </form>
             </div>
           ) : (
             <div className="hidden md:flex gap-2">
               <Button asChild size="sm" variant="outline" className="hidden xl:inline-flex">
-                <Link href="/sign-in">{L.signIn}</Link>
+                <Link href="/sign-in">{t.actions.signIn}</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/sign-up">{L.signUp}</Link>
+                <Link href="/sign-up">{t.actions.signUp}</Link>
               </Button>
             </div>
           )}

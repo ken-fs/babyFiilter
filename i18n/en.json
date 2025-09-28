@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "generate": "Generate",
+    "features": "Features",
+    "samples": "Samples",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "docs": "Docs"
+  },
+  "actions": {
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
+  "sheet": {
+    "navigation": "Navigation"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "generate": "生成",
+    "features": "功能",
+    "samples": "样例",
+    "pricing": "价格",
+    "faq": "常见问题",
+    "docs": "文档"
+  },
+  "actions": {
+    "profile": "个人资料",
+    "dashboard": "控制台",
+    "signOut": "退出",
+    "signIn": "登录",
+    "signUp": "注册"
+  },
+  "sheet": {
+    "navigation": "导航"
+  }
+}
