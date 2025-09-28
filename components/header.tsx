@@ -26,7 +26,7 @@ export default function Header({ user }: HeaderProps) {
 
   // Main navigation modeled after Nano Banana-style layout
   const mainNavItems: NavItem[] = [
-    { label: t.nav.generate, href: "/#editor" },
+    { label: t.nav.generate, href: "/generate" },
     { label: t.nav.features, href: "/#features" },
     { label: t.nav.samples, href: "/#gallery" },
     { label: t.nav.pricing, href: "/pricing" },
