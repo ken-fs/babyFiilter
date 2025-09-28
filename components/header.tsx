@@ -4,9 +4,11 @@ import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { ThemeSwitcher } from "./theme-switcher";
+import { LanguageSwitcher } from "./language-switcher";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "./mobile-nav";
+import { useLanguage } from "@/hooks/use-language";
 
 interface HeaderProps {
   user: any;
@@ -20,15 +22,46 @@ interface NavItem {
 export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
+  const lang = useLanguage();
+
+  const t = {
+    en: {
+      generate: "Generate",
+      features: "Features",
+      samples: "Samples",
+      pricing: "Pricing",
+      faq: "FAQ",
+      docs: "Docs",
+      profile: "Profile",
+      dashboard: "Dashboard",
+      signOut: "Sign out",
+      signIn: "Sign in",
+      signUp: "Sign up",
+    },
+    zh: {
+      generate: "生成",
+      features: "功能",
+      samples: "样例",
+      pricing: "价格",
+      faq: "常见问题",
+      docs: "文档",
+      profile: "个人资料",
+      dashboard: "控制台",
+      signOut: "退出",
+      signIn: "登录",
+      signUp: "注册",
+    },
+  } as const;
+  const L = t[lang] || t.en;
 
   // Main navigation modeled after Nano Banana-style layout
   const mainNavItems: NavItem[] = [
-    { label: "Editor", href: "/#editor" },
-    { label: "Features", href: "/#features" },
-    { label: "Samples", href: "/#gallery" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "FAQ", href: "/#faq" },
-    { label: "Docs", href: "/docs" },
+    { label: L.generate, href: "/#editor" },
+    { label: L.features, href: "/#features" },
+    { label: L.samples, href: "/#gallery" },
+    { label: L.pricing, href: "/pricing" },
+    { label: L.faq, href: "/#faq" },
+    { label: L.docs, href: "/docs" },
   ];
 
   // Dashboard items - empty array as we don't want navigation items in dashboard
@@ -58,6 +91,7 @@ export default function Header({ user }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
           <ThemeSwitcher />
           {user ? (
             <div className="hidden md:flex items-center gap-2">
@@ -69,26 +103,26 @@ export default function Header({ user }: HeaderProps) {
               {!isDashboard && (
                 <>
                   <Button asChild size="sm" variant="default">
-                    <Link href="/profile">Profile</Link>
+                    <Link href="/profile">{L.profile}</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href="/dashboard">Dashboard</Link>
+                    <Link href="/dashboard">{L.dashboard}</Link>
                   </Button>
                 </>
               )}
               <form action={signOutAction}>
                 <Button type="submit" variant="outline" size="sm">
-                  Sign out
+                  {L.signOut}
                 </Button>
               </form>
             </div>
           ) : (
             <div className="hidden md:flex gap-2">
               <Button asChild size="sm" variant="outline" className="hidden xl:inline-flex">
-                <Link href="/#gallery">View Samples</Link>
+                <Link href="/sign-in">{L.signIn}</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/#editor">Try Now</Link>
+                <Link href="/sign-up">{L.signUp}</Link>
               </Button>
             </div>
           )}
